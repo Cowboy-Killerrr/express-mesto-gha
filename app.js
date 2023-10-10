@@ -1,12 +1,12 @@
 const express = require('express');
 
 const app = express();
-const port = 3000;
+const { PORT = 3000 } = process.env;
 
 app.get('/', (req, res) => {
-  res.send('Server on fire');
+  res.send('Server on fire!!');
 });
 
-app.listen(port, () => {
-  console.log(`App listening on http://localhost:${port}/`);
+app.listen(PORT, () => {
+  console.log(`App listening on http://localhost:${PORT}/`);
 });
