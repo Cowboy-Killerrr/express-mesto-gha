@@ -22,6 +22,7 @@ app.use((req, res, next) => {
 });
 
 app.use('/users', require('./routes/users'));
+app.use('/cards', require('./routes/cards'));
 
 app.listen(PORT, () => {
   console.log(`Server is running on: http://localhost:${PORT}/`);

@@ -7,7 +7,7 @@ const getUsers = (req, res) => {
 };
 
 const getUser = (req, res) => {
-  User.findById(req.params.userId)
+  User.findById(req.params.id)
     .then((user) => res.send({ data: user }))
     .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
 };
@@ -19,6 +19,14 @@ const createUser = (req, res) => {
     .then((user) => res.status(201).send({ user }))
     .catch((error) => {
       if (error.name === 'ValidationError') {
+        return res.status(400).send({ message: error.message });
+      }
+
+      if (error.about === 'ValidationError') {
+        return res.status(400).send({ message: error.message });
+      }
+
+      if (error.avatar === 'ValidationError') {
         return res.status(400).send({ message: error.message });
       }
 
