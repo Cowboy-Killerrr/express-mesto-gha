@@ -2,25 +2,27 @@ const Card = require('../models/card');
 
 const getCards = (req, res) => {
   Card.find({})
-    .then((cards) => res.send({ data: cards }))
-    .catch(() => res.status(500).send({ message: 'Server Error' }));
+    .then((cards) => res.send(cards))
+    .catch((error) => {
+      if (error.name === 'NotFound') {
+        return res.status(404).send({ message: 'Карточки не найдены' });
+      }
+
+      return res.status(500).send({ message: 'Произошла ошибка' });
+    });
 };
 
 const createCard = (req, res) => {
   const { name, link } = req.body;
 
   Card.create({ name, link })
-    .then((card) => res.status(201).send({ card }))
+    .then((card) => res.status(201).send(card))
     .catch((error) => {
       if (error.name === 'ValidationError') {
-        return res.status(400).send({ message: error.message });
+        return res.status(400).send({ message: 'Введены некорректные данные' });
       }
 
-      if (error.link === 'ValidationError') {
-        return res.status(400).send({ message: error.message });
-      }
-
-      return res.status(500).send({ message: 'Server Error' });
+      return res.status(500).send({ message: 'Произошла ошибка' });
     });
 };
 

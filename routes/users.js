@@ -9,8 +9,8 @@ usersRouter.get('/:id', getUser);
 
 usersRouter.post('/', createUser);
 
-usersRouter.patch('/:id', updateUser);
+usersRouter.patch('/me/:id', updateUser);
 
-usersRouter.patch('/:id/avatar', updateUserAvatar);
+usersRouter.patch('/me/:id/avatar', updateUserAvatar);
 
 module.exports = usersRouter;
