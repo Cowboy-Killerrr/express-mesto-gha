@@ -4,6 +4,10 @@ const getUsers = (req, res) => {
   User.find({})
     .then((users) => res.status(200).send(users))
     .catch((error) => {
+      if (error.name === 'ValidationError') {
+        return res.status(400).send({ message: 'Некорректные данные' });
+      }
+
       if (error.name === 'NotFound') {
         return res.status(404).send({ message: 'Пользователи не найдены' });
       }
@@ -14,10 +18,16 @@ const getUsers = (req, res) => {
 
 const getUser = (req, res) => {
   User.findById(req.params.id)
-    .then((user) => res.status(200).send(user))
-    .catch((error) => {
-      if (error.name === 'NotFound') {
+    .then((user) => {
+      if (!user) {
         return res.status(404).send({ message: 'Пользователь не найден' });
+      }
+
+      return res.status(200).send(user);
+    })
+    .catch((error) => {
+      if (error.name === 'CastError') {
+        return res.status(400).send({ message: 'Неверный ID' });
       }
 
       return res.status(500).send({ message: 'Произошла ошибка' });
@@ -31,7 +41,7 @@ const createUser = (req, res) => {
     .then((user) => res.status(201).send(user))
     .catch((error) => {
       if (error.name === 'ValidationError') {
-        return res.status(400).send({ message: 'Введены некорректные данные' });
+        return res.status(400).send({ message: 'Некорректные данные' });
       }
 
       return res.status(500).send({ message: 'Произошла ошибка' });
