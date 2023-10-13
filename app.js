@@ -21,8 +21,13 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use('/', require('./routes/index'));
 app.use('/users', require('./routes/users'));
 app.use('/cards', require('./routes/cards'));
+
+app.get('*', (req, res) => {
+  res.status(404).send({ message: 'Неверный путь' });
+});
 
 app.listen(PORT, () => {
   console.log(`Server is running on: http://localhost:${PORT}/`);
