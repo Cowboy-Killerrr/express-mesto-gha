@@ -1,6 +1,8 @@
 const express = require('express');
 const mongoose = require('mongoose');
 
+const { NOT_FOUND } = require('./utils/errorCodes');
+
 mongoose
   .connect('mongodb://127.0.0.1:27017/mestodb', {
     useNewUrlParser: true,
@@ -21,12 +23,11 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use('/', require('./routes/index'));
 app.use('/users', require('./routes/users'));
 app.use('/cards', require('./routes/cards'));
 
-app.get('*', (req, res) => {
-  res.status(404).send({ message: 'Неверный путь' });
+app.use('*', (req, res) => {
+  res.status(NOT_FOUND).send({ message: 'Неверный путь' });
 });
 
 app.listen(PORT, () => {

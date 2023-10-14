@@ -1,36 +1,29 @@
 const User = require('../models/user');
+const {
+  CREATED, BAD_REQUEST, NOT_FOUND, INTERNAL_SERVER_ERROR,
+} = require('../utils/errorCodes');
 
 const getUsers = (req, res) => {
   User.find({})
-    .then((users) => res.status(200).send(users))
-    .catch((error) => {
-      if (error.name === 'ValidationError') {
-        return res.status(400).send({ message: 'Некорректные данные' });
-      }
-
-      if (error.name === 'NotFound') {
-        return res.status(404).send({ message: 'Пользователи не найдены' });
-      }
-
-      return res.status(500).send({ message: 'Произошла ошибка' });
-    });
+    .then((users) => res.send(users))
+    .catch(() => res.status(INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' }));
 };
 
 const getUser = (req, res) => {
   User.findById(req.params.id)
     .then((user) => {
       if (!user) {
-        return res.status(404).send({ message: 'Пользователь не найден' });
+        return res.status(NOT_FOUND).send({ message: 'Пользователь не найден' });
       }
 
-      return res.status(200).send(user);
+      return res.send(user);
     })
     .catch((error) => {
       if (error.name === 'CastError') {
-        return res.status(400).send({ message: 'Неверный ID' });
+        return res.status(BAD_REQUEST).send({ message: 'Неверный ID' });
       }
 
-      return res.status(500).send({ message: 'Произошла ошибка' });
+      return res.status(INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' });
     });
 };
 
@@ -38,13 +31,13 @@ const createUser = (req, res) => {
   const { name, about, avatar } = req.body;
 
   User.create({ name, about, avatar })
-    .then((user) => res.status(201).send(user))
+    .then((user) => res.status(CREATED).send(user))
     .catch((error) => {
       if (error.name === 'ValidationError') {
-        return res.status(400).send({ message: 'Некорректные данные' });
+        return res.status(BAD_REQUEST).send({ message: 'Некорректные данные' });
       }
 
-      return res.status(500).send({ message: 'Произошла ошибка' });
+      return res.status(INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' });
     });
 };
 
@@ -59,13 +52,13 @@ const updateUser = (req, res) => {
       runValidators: true,
     },
   )
-    .then((user) => res.status(200).send(user))
+    .then((user) => res.send(user))
     .catch((error) => {
       if (error.name === 'ValidationError') {
-        return res.status(400).send({ message: 'Введены некорректные данные' });
+        return res.status(BAD_REQUEST).send({ message: 'Введены некорректные данные' });
       }
 
-      return res.status(500).send({ message: 'Произошла ошибка' });
+      return res.status(INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' });
     });
 };
 
@@ -80,13 +73,13 @@ const updateUserAvatar = (req, res) => {
       runValidators: true,
     },
   )
-    .then((user) => res.status(200).send(user))
+    .then((user) => res.send(user))
     .catch((error) => {
       if (error.name === 'ValidationError') {
-        return res.status(400).send({ message: 'Введены некорректные данные' });
+        return res.status(BAD_REQUEST).send({ message: 'Введены некорректные данные' });
       }
 
-      return res.status(500).send({ message: 'Произошла ошибка' });
+      return res.status(INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' });
     });
 };
 
