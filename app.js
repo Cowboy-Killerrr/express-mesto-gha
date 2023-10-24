@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 
+const { createUser, login } = require('./controllers/users');
 const { NOT_FOUND } = require('./utils/errorCodes');
 
 mongoose
@@ -25,6 +26,9 @@ app.use((req, res, next) => {
 
 app.use('/users', require('./routes/users'));
 app.use('/cards', require('./routes/cards'));
+
+app.post('/signin', login);
+app.post('/signup', createUser);
 
 app.use('*', (req, res) => {
   res.status(NOT_FOUND).send({ message: 'Неверный путь' });
