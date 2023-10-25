@@ -1,9 +1,11 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const { celebrate, Joi } = require('celebrate');
 
+const { errors } = require('celebrate');
 const { createUser, login } = require('./controllers/users');
-const { NOT_FOUND } = require('./utils/errorCodes');
 const auth = require('./middlewares/auth');
+const { HTTP_STATUS_INTERNAL_SERVER_ERROR, HTTP_STATUS_NOT_FOUND } = require('http2').constants;
 
 mongoose
   .connect('mongodb://127.0.0.1:27017/mestodb', {
@@ -17,8 +19,24 @@ const { PORT = 3000 } = process.env;
 
 app.use(express.json());
 
-app.post('/signin', login);
-app.post('/signup', createUser);
+app.post('/signin', celebrate({
+  body: Joi.object().keys({
+    name: Joi.string().min(2).max(30).default('Жак-Ив Кусто'),
+    about: Joi.string().min(2).max(30).default('Исследователь'),
+    avatar: Joi.string().default('https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png'),
+    email: Joi.string().required(),
+    password: Joi.string().min(8).required(),
+  }),
+}), login);
+app.post('/signup', celebrate({
+  body: Joi.object().keys({
+    name: Joi.string().min(2).max(30).default('Жак-Ив Кусто'),
+    about: Joi.string().min(2).max(30).default('Исследователь'),
+    avatar: Joi.string().default('https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png'),
+    email: Joi.string().required(),
+    password: Joi.string().min(8).required(),
+  }),
+}), createUser);
 
 app.use(auth);
 
@@ -26,11 +44,21 @@ app.use('/users', require('./routes/users'));
 app.use('/cards', require('./routes/cards'));
 
 app.use('*', (req, res) => {
-  res.status(NOT_FOUND).send({ message: 'Неверный путь' });
+  res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Неверный путь' });
 });
 
+app.use(errors());
+
 app.use((error, req, res, next) => {
-  res.status(500).send({ message: error.message });
+  const { statusCode = HTTP_STATUS_INTERNAL_SERVER_ERROR, message } = error;
+
+  res
+    .status(statusCode)
+    .send({
+      message: statusCode === HTTP_STATUS_INTERNAL_SERVER_ERROR
+        ? 'Ошибка сервера'
+        : message,
+    });
 });
 
 app.listen(PORT, () => {
