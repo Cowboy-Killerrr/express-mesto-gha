@@ -1,35 +1,37 @@
+const { HTTP_STATUS_CREATED } = require('http2').constants;
+
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
-const {
-  CREATED, BAD_REQUEST, NOT_FOUND, INTERNAL_SERVER_ERROR,
-} = require('../utils/errorCodes');
 
-const getUsers = (req, res) => {
+const { NotFoundError } = require('../errors/not-found-error');
+const { ValidationError } = require('../errors/validation-error');
+const { UnauthorisedError } = require('../errors/unauthorized-error');
+
+const getUsers = (req, res, next) => {
   User.find({})
     .then((users) => res.send(users))
-    .catch(() => res.status(INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' }));
+    .catch(next);
 };
 
-const getUser = (req, res) => {
+const getUser = (req, res, next) => {
   User.findById(req.params.id)
     .then((user) => {
       if (!user) {
-        return res.status(NOT_FOUND).send({ message: 'Пользователь не найден' });
+        throw new NotFoundError('Пользователь не найден');
       }
 
       return res.send(user);
     })
     .catch((error) => {
       if (error.name === 'CastError') {
-        return res.status(BAD_REQUEST).send({ message: 'Неверный ID' });
+        throw new ValidationError('Неверный ID');
       }
-
-      return res.status(INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' });
-    });
+    })
+    .catch(next);
 };
 
-const createUser = (req, res) => {
+const createUser = (req, res, next) => {
   const {
     name, about, avatar, email, password,
   } = req.body;
@@ -43,18 +45,17 @@ const createUser = (req, res) => {
         email,
         password: hash,
       })
-        .then((user) => res.status(CREATED).send(user))
+        .then((user) => res.status(HTTP_STATUS_CREATED).send(user))
         .catch((error) => {
           if (error.name === 'ValidationError') {
-            return res.status(BAD_REQUEST).send({ message: 'Некорректные данные' });
+            throw new ValidationError('Некорректные данные');
           }
-
-          return res.status(INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' });
-        });
+        })
+        .catch(next);
     });
 };
 
-const updateUser = (req, res) => {
+const updateUser = (req, res, next) => {
   const { name, about } = req.body;
 
   User.findByIdAndUpdate(
@@ -68,14 +69,13 @@ const updateUser = (req, res) => {
     .then((user) => res.send(user))
     .catch((error) => {
       if (error.name === 'ValidationError') {
-        return res.status(BAD_REQUEST).send({ message: 'Введены некорректные данные' });
+        throw new ValidationError('Введены некорректные данные');
       }
-
-      return res.status(INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' });
-    });
+    })
+    .catch(next);
 };
 
-const updateUserAvatar = (req, res) => {
+const updateUserAvatar = (req, res, next) => {
   const { avatar } = req.body;
 
   User.findByIdAndUpdate(
@@ -89,14 +89,13 @@ const updateUserAvatar = (req, res) => {
     .then((user) => res.send(user))
     .catch((error) => {
       if (error.name === 'ValidationError') {
-        return res.status(BAD_REQUEST).send({ message: 'Введены некорректные данные' });
+        throw new ValidationError('Введены некорректные данные');
       }
-
-      return res.status(INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' });
-    });
+    })
+    .catch(next);
 };
 
-const login = (req, res) => {
+const login = (req, res, next) => {
   const { email, password } = req.body;
 
   return User.findUserByCredentials(email, password)
@@ -106,10 +105,9 @@ const login = (req, res) => {
       res.send({ token });
     })
     .catch((error) => {
-      res
-        .status(401)
-        .send({ message: error.message });
-    });
+      throw new UnauthorisedError(error.message);
+    })
+    .catch(next);
 };
 
 module.exports = {

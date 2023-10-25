@@ -29,6 +29,10 @@ app.use('*', (req, res) => {
   res.status(NOT_FOUND).send({ message: 'Неверный путь' });
 });
 
+app.use((error, req, res, next) => {
+  res.status(500).send({ message: error.message });
+});
+
 app.listen(PORT, () => {
   console.log(`Server is running on: http://localhost:${PORT}/`);
 });
