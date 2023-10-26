@@ -7,6 +7,7 @@ const User = require('../models/user');
 const { NotFoundError } = require('../errors/not-found-error');
 const { ValidationError } = require('../errors/validation-error');
 const { UnauthorisedError } = require('../errors/unauthorized-error');
+const { ConflictError } = require('../errors/conflict-error');
 
 const getUsers = (req, res, next) => {
   User.find({})
@@ -49,6 +50,10 @@ const createUser = (req, res, next) => {
         .catch((error) => {
           if (error.name === 'ValidationError') {
             throw new ValidationError('Некорректные данные');
+          }
+
+          if (error.code === 11000) {
+            throw new ConflictError('Пользователь с таким email уже существует');
           }
         })
         .catch(next);
