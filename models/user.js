@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
 const validator = require('validator');
 const { UnauthorisedError } = require('../errors/unauthorized-error');
+const { ValidationError } = require('../errors/validation-error');
 
 const { Schema } = mongoose;
 
@@ -21,6 +22,13 @@ const userSchema = new Schema({
   avatar: {
     type: String,
     default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
+    validate(value) {
+      const regExpUrl = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()!@:%_\+.~#?&\/\/=]*)/;
+
+      if (!regExpUrl.test(value)) {
+        throw new ValidationError('В поле аватар должна быть ссылка');
+      }
+    },
   },
   email: {
     type: String,
@@ -28,7 +36,7 @@ const userSchema = new Schema({
     unique: true,
     validate(value) {
       if (!validator.isEmail(value)) {
-        throw new Error('Неверный email');
+        throw new ValidationError('Неверный email');
       }
     },
   },
